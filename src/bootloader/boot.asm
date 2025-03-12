@@ -152,7 +152,7 @@ lba_to_chs:
 	or cl, ah									; put upper 2 bits of cylinder in CL
 
 	pop ax
-	mov dl, al									 restore DL
+	mov dl, al									; restore DL
 	pop ax
 	ret
 
@@ -179,14 +179,14 @@ disk_read:
 	mov di, 3									; retry count as floppy can be unreliable
 
 .retry:
-	push a										; save all registers, we don't know what bios modifies
+	pusha										; save all registers, we don't know what bios modifies
 	stc											; set carry flag, some BIOS'es don't set it
 	int 13h										; carry flag cleared = success
 	jnc .done									; jump if carry not set
 	
 
 	; read failed
-	pop a
+	popa
 	call disk_reset
 
 
@@ -200,7 +200,7 @@ disk_read:
 
 
 .done:
-	pop a
+	popa
 
 	push di										; restore registers modified
 	push dx
@@ -216,12 +216,12 @@ disk_read:
 ;	dl: driver number
 ;
 disk_reset:
-	push a
+	pusha
 	mov ah, 0
 	stc
 	int 13h
 	jc floppy_error
-	pop a
+	popa
 	ret
 
 

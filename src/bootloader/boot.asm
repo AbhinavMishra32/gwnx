@@ -79,14 +79,41 @@ main:
 	mov ss, ax			; setup stack segment (ss) to 0 which is ax
 	mov sp, 0x7C00		; stack grows downwards from where we are loaded in memory
 
+	; read something from floppy disk
+	; BIOS should set DL to drive number
+	mov [ebr_drive_number], dl
+	
+	mov ax, 1			; LBA = 1, second sector from disk
+	mov cl, 1
+	mov bx, 0x7E00		; data should be after the bootloader
+	call disk_read
+
 	; print message
 	mov si, msg_hello
 	call puts
 
     hlt
 
+
+;
+; Error handlers
+;
+floppy_error:
+	mov si, msg_read_failed
+	call puts
+	jmp wait_key_and_reboot
+
+wait_key_and_reboot:
+	mov ah, 0
+	int 16h								; wait for keypress
+	jmp 0FFFFh:0						; jump to beginning of BIOS, should reboot
+
+	hlt
+
+ 
 .halt:
-    jmp .halt
+	cli									; disable interrupts, this way CPU can't get out of "halt" state
+	hlt
 
 
 ;
@@ -138,13 +165,68 @@ lba_to_chs:
 ;	- es:bx: memory address where to store read data
 ;
 disk_read:
+	push ax										; save registers we will modify
+	push bx
+	push cx
+	push dx
+	push di
+
 	push cx										; temporarily save CL (number of sectors to read)
 	call lba_to_chs								; compute CHS
 	pop ax										; AL = number of sectors to read
+	
+	mov ah, 02h
+	mov di, 3									; retry count as floppy can be unreliable
+
+.retry:
+	push a										; save all registers, we don't know what bios modifies
+	stc											; set carry flag, some BIOS'es don't set it
+	int 13h										; carry flag cleared = success
+	jnc .done									; jump if carry not set
+	
+
+	; read failed
+	pop a
+	call disk_reset
 
 
+	dec di
+	test di, di
+	jnz .retry
 
-msg_hello: db 'Hello world!', ENDL, 0
+.fail:
+	; all attempts are exhausted
+	jmp floppy_error
+
+
+.done:
+	pop a
+
+	push di										; restore registers modified
+	push dx
+	push cx
+	push bx
+	push ax
+	ret
+
+
+;
+; Resets disk controller
+; Parameters:
+;	dl: driver number
+;
+disk_reset:
+	push a
+	mov ah, 0
+	stc
+	int 13h
+	jc floppy_error
+	pop a
+	ret
+
+
+msg_hello: 				db 'Hello world!', ENDL, 0
+msg_read_failed: 		db 'Read from disk fail', ENDL, 0	
 
 
 times 510-($-$$) db 0

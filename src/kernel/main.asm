@@ -11,6 +11,7 @@ start:
 ; Prints a sting to the screen.
 ; Params:
 ;	- ds:si points to string
+;
 puts:
 	; save registers we will modify
 	push si
@@ -21,9 +22,11 @@ puts:
 	or al, al			; verify if next character is null?
 	jz .done
 
-	mov ah, 0x0e 		; call bios interrupt
+	mov ah, 0x0E 		; call bios interrupt
 	mov bh, 0
 	int 0x10
+
+	jmp .loop
 	
 
 .done:
@@ -36,7 +39,7 @@ main:
 	; setup data segments
 	mov ax, 0
 	mov ds, ax			; can't write to ds/es directly
-	mov ds, ax
+	mov es, ax
 
 	; setup stack
 	mov ss, ax			; setup stack segment (ss) to 0 which is ax

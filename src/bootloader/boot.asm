@@ -92,6 +92,7 @@ main:
 	mov si, msg_hello
 	call puts
 
+    cli
     hlt
 
 
@@ -202,11 +203,11 @@ disk_read:
 .done:
 	popa
 
-	push di										; restore registers modified
-	push dx
-	push cx
-	push bx
-	push ax
+	pop di										; restore registers modified
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 	ret
 
 

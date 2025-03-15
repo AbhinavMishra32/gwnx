@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef uint8_t bool;
 #define true 1
@@ -75,6 +76,16 @@ bool readRootDirectory(FILE* disk) {
     return readSectors(disk, lba, sectors, g_RootDirectory);
 }
 
+DirectoryEntry* findFile(const char* name){
+    for (uint32_t i = 0; i < g_BootSector.DirEntryCount; i++) {
+        if (memcmp(name, g_RootDirectory[i].Name, 11) == 0) {
+            return &g_RootDirectory[i];
+        }
+    }
+
+    return NULL;
+}
+
 int main(int argc, char** argv) {
     if (argc < 3) {
         printf("Syntax: %s <disk image> <file name>\n", argv[0]);
@@ -104,6 +115,14 @@ int main(int argc, char** argv) {
         free(g_Fat);
         free(g_RootDirectory);
         return -4;
+    }
+
+    DirectoryEntry*  fileEntry = findFile(argv[2]);
+    if (!fileEntry) {
+        fprintf(stderr, "Could not find file %s!\n", argv[2]);
+        free(g_Fat);
+        free(g_RootDirectory);
+        return -5;
     }
 
     free(g_Fat);

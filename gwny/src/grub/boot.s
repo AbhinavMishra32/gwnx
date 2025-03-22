@@ -1,18 +1,25 @@
-[bits 32]
+[BITS 32]
+
 section .text
-global _start
+    ALIGN 4
+    DD 0x1BADB002               ; magic number
+    DD 0X00000000
+    DD -(0x1BADB002 + 0x00000000)
+
+global start
 extern kmain
 
+start:
+    cli
+    mov esp, stack_space
+    call kmain
+    hlt
 
-_start:
-    mov esp, stack_top              ; Set up stack
-    push ebx                        ; Multiboot info structure
-    call kmain                      ; Call C kernel function
-
-    hlt                             ; Halt if kmain returns
+HaltKernal:
+    cli
+    hlt
+    jmp HaltKernal
 
 section .bss
-align 16
 resb 8192
-
-stack_top:
+stack_space:

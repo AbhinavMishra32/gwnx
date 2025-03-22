@@ -5,7 +5,7 @@ load_kernel:
     mov cl, 2               ; Start at sector 2 (sector 1 is bootloader)
     mov dh, 0               ; Head 0
     mov dl, 0x80            ; First hard drive
-    mov bx, 0x1000          ; Load kernel at 0x1000
+    mov bx, 0x100000          ; Load kernel at 0x1000
     int 0x13                ; Call BIOS disk read
 
     jc disk_error           ; Jump if error

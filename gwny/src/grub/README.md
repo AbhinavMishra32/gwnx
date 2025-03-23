@@ -1,0 +1,1 @@
+grub_i386/i386-pc is grub 32 bit image file for creating ISO's, I downloaded and put it into the repo from https://archlinux.org/packages/core/x86_64/grub/download, inside it in the folder usr/lib/grub/i386-pc

@@ -1,10 +1,14 @@
-void kmain(void);
-
+#include "display.h"
 
 void kmain(void) {
-    volatile char *video = (volatile char*) 0xB8000;
-    video[0] = 'H';
-    video[1] = 0x07;
-    video[2] = 'i';
-    video[3] = 0x07;
+    reset_display();
+    printf("Hi Abhinav!\r\n");
+    printf("Yo how are you!?\n");
+
+    for(uint8_t i = 0; i < 5; i++) {
+        for(uint8_t j =0; j<i; j++){
+            printf("*");
+        }
+        printf("\n");
+    }
 }

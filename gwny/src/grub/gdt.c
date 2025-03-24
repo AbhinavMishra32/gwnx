@@ -1,12 +1,15 @@
 #include "gdt.h"
+#include <stdint.h>
 
 typedef uint32_t addr_t;
 extern void gdt_flush(addr_t);
 
-struct gdt_entry gdt_entries[5];
+struct gdt_entry gdt_entries[6];
 struct gdt_ptr_struct gdt_ptr;
+struct tss_entry_struct tss_entry;
+
 void init_gdt(){
-    gdt_ptr.limit = (sizeof(struct gdt_entry) * 5) - 1;
+    gdt_ptr.limit = (sizeof(struct gdt_entry) * 6) - 1;
     gdt_ptr.base = (addr_t)&gdt_entries;
 
     set_gdt_entry(0, 0, 0, 0, 0); // Null segment (required convention)
@@ -15,10 +18,17 @@ void init_gdt(){
     set_gdt_entry(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User code segment
     set_gdt_entry(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User data segment
     set_gdt_entry(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User data segment
-
+    write_tss(5, 0x10, 0x0);
     gdt_flush((addr_t)&gdt_ptr);
     
     //
+}
+
+void write_tss(uint32_t num, uint16_t ss0, uint32_t esp0){
+    uint32_t base = (uint32_t) &tss_entry;
+    uint32_t limit = base + sizeof(tss_entry);
+
+    set_gdt_entry(num, base, limit, 0xE9, 0x00);
 }
 
 void set_gdt_entry(uint32_t index, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {

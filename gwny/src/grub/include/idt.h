@@ -1,4 +1,8 @@
-#include <stdint.h>
+#ifndef IDT_H
+#define IDT_H
+
+#include "stdint.h"
+#include "util.h"
 struct idt_entry_struct {
     uint16_t base_low;
     uint16_t sel;
@@ -14,6 +18,8 @@ struct idt_ptr_struct {
 
 void init_idt();
 void set_idt_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags);
+
+void isr_handler(struct InterruptRegisters* regs);
 
 extern void isr0();
 extern void isr1();
@@ -48,3 +54,24 @@ extern void isr29();
 extern void isr30();
 extern void isr31();
 
+extern void isr128();
+extern void isr177();
+
+extern void irq0();
+extern void irq1();
+extern void irq2();
+extern void irq3();
+extern void irq4();
+extern void irq5();
+extern void irq6();
+extern void irq7();
+extern void irq8();
+extern void irq9();
+extern void irq10();
+extern void irq11();
+extern void irq12();
+extern void irq13();
+extern void irq14();
+extern void irq15();
+
+#endif

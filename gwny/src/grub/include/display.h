@@ -25,7 +25,7 @@
 #define width 80
 #define height 25
 
-void printf(const char* s);
+void kprintf(const char* s);
 void scroll_up();
 void new_line();
 void reset_display();

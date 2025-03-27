@@ -1,4 +1,4 @@
-#include "idt.h"
+#include "../include/idt.h"
 #include "stdint.h"
 #include "util.h"
 #include "display.h"
@@ -65,6 +65,107 @@ void init_idt(){
     set_idt_gate(30, (uint32_t)isr30, 0x08, 0x8E);
     set_idt_gate(31, (uint32_t)isr31, 0x08, 0x8E);
 
-void set_idt_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags){
+    set_idt_gate(32, (uint32_t)irq0, 0x08, 0x8E);
+    set_idt_gate(33, (uint32_t)irq1, 0x08, 0x8E);
+    set_idt_gate(34, (uint32_t)irq2, 0x08, 0x8E);
+    set_idt_gate(35, (uint32_t)irq3, 0x08, 0x8E);
+    set_idt_gate(36, (uint32_t)irq4, 0x08, 0x8E);
+    set_idt_gate(37, (uint32_t)irq5, 0x08, 0x8E);
+    set_idt_gate(38, (uint32_t)irq6, 0x08, 0x8E);
+    set_idt_gate(39, (uint32_t)irq7, 0x08, 0x8E);
+    set_idt_gate(40, (uint32_t)irq8, 0x08, 0x8E);
+    set_idt_gate(41, (uint32_t)irq9, 0x08, 0x8E);
+    set_idt_gate(42, (uint32_t)irq10, 0x08, 0x8E);
+    set_idt_gate(43, (uint32_t)irq11, 0x08, 0x8E);
+    set_idt_gate(44, (uint32_t)irq12, 0x08, 0x8E);
+    set_idt_gate(45, (uint32_t)irq13, 0x08, 0x8E);
+    set_idt_gate(46, (uint32_t)irq14, 0x08, 0x8E);
+    set_idt_gate(47, (uint32_t)irq15, 0x08, 0x8E);
+
+    set_idt_gate(128, (uint32_t)isr128, 0x08, 0x8E); // System calls
+    set_idt_gate(177, (uint32_t)isr177, 0x08, 0x8E); // System calls
+
+    idt_flush((uint32_t)&idt_ptr);
 
 }
+
+void set_idt_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags){
+        idt_entries[num].base_low = base & 0xFFFF;
+        idt_entries[num].base_high = (base >> 16) & 0xFFFF;
+        idt_entries[num].sel = sel;
+        idt_entries[num].always0 = 0;
+        idt_entries[num].flags = flags | 0x60;
+}
+
+unsigned char* exception_messages[] = {
+    "Division by zero",
+    "Debug",
+    "Non Maskable Interrupt",
+    "Breakpoint",
+    "Into Detected Overflow",
+    "Out of Bounds",
+    "Invalid Opcode",
+    "No Coprocessor",
+    "Double fault",
+    "Coprocessor Segment Overrun",
+    "Bad TSS",
+    "Segment not present",
+    "Stack fault",
+    "General protection fault",
+    "Page fault",
+    "Unknown Interrupt",
+    "Coprocessor Fault",
+    "Alignment Fault",
+    "Machine Check",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+};
+
+void isr_handler(struct InterruptRegisters* regs){
+    if (regs->int_no < 32) {
+        kprintf(exception_messages[regs->int_no]);
+        kprintf("\n");
+        kprintf("Exception! System Halted!\n");
+        for (;;);
+    }
+}
+
+void *irq_routines[16] = {
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+};
+
+void irq_install_handler (int irq, void (*handler)(struct InterruptRegisters *r)){
+    irq_routines[irq] = handler;
+}
+
+void irq_uninstall_handler(int irq){
+    irq_routines[irq] = 0;
+}
+
+void irq_handler(struct InterruptRegisters* regs) {
+    void (*handler)(struct InterruptRegisters* regs);
+
+    handler = irq_routines[regs->int_no - 32];
+
+    if (handler) {
+        handler(regs);
+    }
+
+    if (regs->int_no >= 40){
+        outb(0xA0, 0x20);
+    }
+
+    outb(0x20, 0x20); // required by PIC
+}; 

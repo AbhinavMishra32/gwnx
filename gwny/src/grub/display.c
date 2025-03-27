@@ -41,7 +41,7 @@ void scroll_up(){
     }
 }
 
-void printf(const char* s){
+void kprintf(const char* s){
     while (*s){
         switch(*s){
             case '\n':

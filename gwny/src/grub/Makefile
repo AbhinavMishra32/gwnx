@@ -2,7 +2,7 @@
 
 all: iso
 
-BUILD ?= Debug
+BUILD ?= Release
 
 CC := gcc
 CC_32 := i386-elf-gcc
@@ -20,7 +20,7 @@ else ifeq ($(BUILD), Release)
 endif
 
 
-SRC_C = kernel.c display.c gdt.c util.c
+SRC_C = kernel.c display.c gdt.c util.c src/interrupts/idt.c
 OBJ_C = $(SRC_C:.c=.o)		# converts all C files in SRC_C to object files
 
 iso: kernel
@@ -45,9 +45,12 @@ boot.o: boot.s
 gdts.o: gdt.s
 	$(ASM) -f elf32 gdt.s -o gdts.o
 
-kernel: boot.o gdts.o $(OBJ_C)
+idts.o: src/interrupts/idt.s
+	$(ASM) -f elf32 src/interrupts/idt.s -o src/interrupts/idts.o
+
+kernel: boot.o gdts.o idts.o $(OBJ_C)
 	mkdir -p kernel
-	$(LD_32) -T linker.ld -o kernel/kernel.elf boot.o gdts.o $(OBJ_C)
+	$(LD_32) -T linker.ld -o kernel/kernel.elf boot.o gdts.o src/interrupts/idts.o $(OBJ_C)
 
 dockbuild:
 	docker build -t grub-mkrescue-image .

@@ -19,7 +19,6 @@ void init_gdt(){
     set_gdt_entry(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Kernel data segment
     set_gdt_entry(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User code segment
     set_gdt_entry(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User data segment
-    set_gdt_entry(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User data segment
     write_tss(5, 0x10, 0x0);
     gdt_flush((addr_t)&gdt_ptr);
 
@@ -30,7 +29,7 @@ void init_gdt(){
 
 void write_tss(uint32_t num, uint16_t ss0, uint32_t esp0){
     uint32_t base = (uint32_t) &tss_entry;
-    uint32_t limit = base + sizeof(tss_entry);
+    uint32_t limit = sizeof(tss_entry) - 1;
 
     set_gdt_entry(num, base, limit, 0xE9, 0x00);
     memset(&tss_entry, 0, sizeof(tss_entry));
@@ -49,7 +48,7 @@ void set_gdt_entry(uint32_t index, uint32_t base, uint32_t limit, uint8_t access
 
     gdt_entries[index].limit = (limit & 0xFFFF);
     gdt_entries[index].flags = (limit >> 16) & 0x0F;
-    gdt_entries[index].flags = (gran & 0xF0);
+    gdt_entries[index].flags |= (gran & 0xF0);
 
     gdt_entries[index].access = access;
 }

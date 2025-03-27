@@ -1,17 +1,17 @@
 #include "display.h"
 #include "gdt.h"
+#include "idt.h"
 
 void kmain(void) {
-    init_gdt();
     reset_display();
-    /* printf("GDT is loaded!\r\n"); */
-    printf("Hi Abhinav!\r\n");
-    printf("Yo how are you!?\n");
+    init_gdt();
+    kprintf("GDT initialized!\r\n");
+    kprintf("Hello!\r\n");
+    init_idt();
+    kprintf("IDT initialized!\r\n");
 
-    for(uint8_t i = 0; i < 5; i++) {
-        for(uint8_t j =0; j<i; j++){
-            printf("*");
-        }
-        printf("\n");
-    }
+    int x = 1;
+    int y = 0;
+
+    int z = x/y;
 }

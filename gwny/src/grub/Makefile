@@ -20,7 +20,7 @@ else ifeq ($(BUILD), Release)
 endif
 
 
-SRC_C = kernel.c display.c gdt.c util.c src/interrupts/idt.c
+SRC_C = kernel.c display.c gdt.c util.c src/interrupts/idt.c timer.c
 OBJ_C = $(SRC_C:.c=.o)		# converts all C files in SRC_C to object files
 
 iso: kernel
